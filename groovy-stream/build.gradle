@@ -1,0 +1,150 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+}
+
+sourceCompatibility = 1.8
+
+group 'com.github.bhokumar.gradle.plugin'
+version '1.0-SNAPSHOT'
+
+
+dependencies {
+    implementation gradleApi()
+    implementation localGroovy()
+}
+
+task sourceJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allJava
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives jar
+    archives sourceJar
+    archives javadocJar
+}
+
+
+signing {
+    sign configurations.archives
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            customizePom(pom)
+            groupId 'com.github.bhokumar.plugins'
+            artifactId 'show-date-plugin'
+            version '1.0.2'
+
+            from components.java
+
+            pom.withXml {
+                def pomFile = file("${project.buildDir}/generated-pom.xml")
+                writeTo(pomFile)
+                def pomAscFile = signing.sign(pomFile).signatureFiles[0]
+                artifact(pomAscFile) {
+                    classifier = null
+                    extension = 'pom.asc'
+                }
+            }
+            artifact(sourceJar) {
+                classifier = 'sources'
+            }
+            artifact(javadocJar) {
+                classifier = 'javadoc'
+            }
+
+            // create the signed artifacts
+            project.tasks.signArchives.signatureFiles.each {
+                artifact(it) {
+                    def matcher = it.file =~ /-(sources|javadoc)\.jar\.asc$/
+                    if (matcher.find()) {
+                        classifier = matcher.group(1)
+                    } else {
+                        classifier = null
+                    }
+                    extension = 'jar.asc'
+                }
+            }
+
+        }
+    }
+
+    repositories {
+        maven {
+            url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            credentials {
+                username ossrhUsername
+                password ossrhPassword
+            }
+        }
+    }
+}
+
+def customizePom(pom) {
+    pom.withXml {
+        def root = asNode()
+
+        // eliminate test-scoped dependencies (no need in maven central POMs)
+        root.dependencies.removeAll { dep ->
+            dep.scope == "test"
+        }
+
+        // add all items necessary for maven central publication
+        root.children().last() + {
+            resolveStrategy = Closure.DELEGATE_FIRST
+
+            description 'Serialize and Deserialize Json-LD into Java entities'
+            name 'Schema.org Java'
+            url 'https://github.com/bhokumar/show-date-gradle-plugin'
+            organization {
+                name 'com.github.bhokumar'
+                url 'https://github.com/bhokumar'
+            }
+            issueManagement {
+                system 'GitHub'
+                url 'https://github.com/bhokumar/show-date-gradle-plugin/issues'
+            }
+            licenses {
+                license {
+                    name 'MIT License'
+                    url 'https://github.com/bhokumar/show-date-gradle-plugin/blob/master/LICENSE'
+                    distribution 'repo'
+                }
+            }
+            scm {
+                url 'https://github.com/bhokumar/show-date-gradle-plugin'
+                connection 'scm:git:git://github.com/bhokumar/show-date-gradle-plugin.git'
+                developerConnection 'scm:git:ssh://git@github.com:bhokumar/show-date-gradle-plugin.git'
+            }
+            developers {
+                developer {
+                    name 'bhoopendra'
+                }
+            }
+        }
+    }
+}
+
+model {
+    tasks.generatePomFileForMavenJavaPublication {
+        destination = file("$buildDir/generated-pom.xml")
+    }
+    tasks.publishMavenJavaPublicationToMavenLocal {
+        dependsOn project.tasks.signArchives
+    }
+    tasks.publishMavenJavaPublicationToMavenRepository {
+        dependsOn project.tasks.signArchives
+    }
+}
+
+apply plugin: 'groovy'
+
