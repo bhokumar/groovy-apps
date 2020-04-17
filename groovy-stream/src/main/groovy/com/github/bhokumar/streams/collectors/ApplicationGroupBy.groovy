@@ -27,6 +27,9 @@ class ApplicationGroupBy {
 
         println createPeople().parallelStream()
                 .collect(Collectors.groupingBy({it.name}, Collectors.mapping({it.age}, Collectors.toList())))
+
+        println createPeople().parallelStream()
+                .collect(Collectors.groupingBy({it.name}, Collectors.counting()))
     }
 
 }
