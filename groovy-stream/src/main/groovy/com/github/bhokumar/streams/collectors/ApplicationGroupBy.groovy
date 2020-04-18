@@ -1,9 +1,7 @@
 package com.github.bhokumar.streams.collectors
-
+import static  java.util.stream.Collectors.*
 import com.github.bhokumar.streams.model.Gender
 import com.github.bhokumar.streams.model.Person
-
-import java.util.stream.Collectors
 
 class ApplicationGroupBy {
 
@@ -21,7 +19,7 @@ class ApplicationGroupBy {
     }
 
     static void main(String[] args) {
-
+/*
        println createPeople().parallelStream()
         .collect(Collectors.groupingBy({it.name}))
 
@@ -30,6 +28,12 @@ class ApplicationGroupBy {
 
         println createPeople().parallelStream()
                 .collect(Collectors.groupingBy({it.name}, Collectors.counting()))
+*/
+        println createPeople().stream()
+                .collect(groupingBy({ it.name}, collectingAndThen(
+                        counting(),
+                        {it.intValue()}
+                )))
     }
 
 }
