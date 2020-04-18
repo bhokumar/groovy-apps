@@ -10,4 +10,9 @@ class Person {
         this.gender = gender
         this.age = age
     }
+
+    @Override
+    String toString() {
+        return "{name: ${name}, age: ${age}}"
+    }
 }

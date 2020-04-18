@@ -1,9 +1,12 @@
 package com.github.bhokumar.streams.collectors
-import static  java.util.stream.Collectors.*
+
 import com.github.bhokumar.streams.model.Gender
 import com.github.bhokumar.streams.model.Person
 
-class ApplicationGroupBy {
+import static java.util.stream.Collectors.*
+import static java.util.Comparator.*
+
+class ApplicationSumMinMax {
 
     static List<Person> createPeople() {
         Arrays.asList(
@@ -19,15 +22,23 @@ class ApplicationGroupBy {
     }
 
     static void main(String[] args) {
+        println createPeople().stream()
+                .mapToInt({it.age})
+                .sum()
 
-       println createPeople().parallelStream()
-        .collect(groupingBy({it.name}))
+        println createPeople().stream()
+                .collect(maxBy(comparing({it.age})))
 
-        println createPeople().parallelStream()
-                .collect(groupingBy({it.name}, mapping({it.age}, toList())))
+        println createPeople().stream()
+                .collect(minBy(comparing({it.age})))
 
-        println createPeople().parallelStream()
-                .collect(groupingBy({it.name}, counting()))
+        println createPeople().stream()
+                .collect(
+                        collectingAndThen(
+                                maxBy(comparing({it.age})),
+                                {it.map({it.name}).orElse("")}
+                        )
+                )
 
     }
 

@@ -1,9 +1,11 @@
 package com.github.bhokumar.streams.collectors
-import static  java.util.stream.Collectors.*
+
 import com.github.bhokumar.streams.model.Gender
 import com.github.bhokumar.streams.model.Person
 
-class ApplicationGroupBy {
+import static java.util.stream.Collectors.*
+
+class ApplicationCollcetingAndThen {
 
     static List<Person> createPeople() {
         Arrays.asList(
@@ -19,16 +21,21 @@ class ApplicationGroupBy {
     }
 
     static void main(String[] args) {
-
+/*
        println createPeople().parallelStream()
-        .collect(groupingBy({it.name}))
+        .collect(Collectors.groupingBy({it.name}))
 
         println createPeople().parallelStream()
-                .collect(groupingBy({it.name}, mapping({it.age}, toList())))
+                .collect(Collectors.groupingBy({it.name}, Collectors.mapping({it.age}, Collectors.toList())))
 
         println createPeople().parallelStream()
-                .collect(groupingBy({it.name}, counting()))
-
+                .collect(Collectors.groupingBy({it.name}, Collectors.counting()))
+*/
+        println createPeople().stream()
+                .collect(groupingBy({ it.name}, collectingAndThen(
+                        counting(),
+                        {it.intValue()}
+                )))
     }
 
 }
